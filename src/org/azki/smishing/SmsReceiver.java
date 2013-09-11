@@ -29,37 +29,49 @@ public class SmsReceiver extends BroadcastReceiver {
 					int numOfMsg = new SmsMessage[pdusObj.length].length;
 					for (int i = 0; i < numOfMsg; i++) {
 						SmsMessage message = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
+						String msgOriginating = message.getOriginatingAddress();
 						String msgBody = message.getMessageBody();
 
-						String s = "";
 						Matcher m = android.util.Patterns.WEB_URL.matcher(msgBody);
 						while (m.find()) {
 							String urlStr = m.group();
-							s += urlStr + "\n";
-							try {
-								URL url;
+							if (urlStr.contains(".apk")) {
+								blockMsg(context, msgOriginating, msgBody);
+							} else {
 								try {
-									url = new URL(urlStr);
-								} catch (MalformedURLException ex) {
-									url = new URL("http://" + urlStr);
+									URL url;
+									try {
+										url = new URL(urlStr);
+									} catch (MalformedURLException ex) {
+										url = new URL("http://" + urlStr);
+									}
+									HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+									connection.connect();
+									String contentType = connection.getContentType();
+									String contentDisposition = connection.getHeaderField("Content-Disposition");
+									connection.disconnect();
+									
+									if (contentType != null && contentType.contains("vnd.android.package-archive")) {
+										blockMsg(context, msgOriginating, msgBody);
+									}
+									if (contentDisposition != null && contentDisposition.contains(".apk")) {
+										blockMsg(context, msgOriginating, msgBody);
+									}
+								} catch (Exception ex) {
+									Toast.makeText(context, ex.getMessage(), Toast.LENGTH_LONG).show();
+									Log.e("tag", "error", ex);
 								}
-								HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-								connection.connect();
-								String contentType = connection.getContentType();
-								String contentDisposition = connection.getHeaderField("Content-Disposition");
-								connection.disconnect();
-								s += contentType + "\n";
-								s += contentDisposition + "\n";
-							} catch (Exception ex) {
-								Toast.makeText(context, ex.getMessage(), Toast.LENGTH_LONG).show();
-								Log.e("tag", "error", ex);
 							}
 						}
-						//abortBroadcast();
-						Toast.makeText(context, s.trim(), Toast.LENGTH_LONG).show();
 					}
 				}
 			}
 		}
+	}
+
+	private void blockMsg(Context context, String msgOriginating, String msgBody) {
+		abortBroadcast();
+
+		Toast.makeText(context, "차단된 메시지:\n" + msgBody + "\n" + msgOriginating, Toast.LENGTH_LONG).show();
 	}
 }
