@@ -3,6 +3,10 @@ package org.azki.smishing;
 import java.util.List;
 import java.util.Vector;
 
+import net.daum.adam.publisher.AdView;
+import net.daum.adam.publisher.AdView.OnAdFailedListener;
+import net.daum.adam.publisher.AdView.OnAdLoadedListener;
+import net.daum.adam.publisher.impl.AdError;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.analytics.tracking.android.EasyTracker;
@@ -26,6 +31,7 @@ public class MainActivity extends Activity {
 	private SharedPreferences pref;
 	private CustomAdapter mAdaptor;
 	private ListView blockedListView;
+	private AdView adView = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +53,8 @@ public class MainActivity extends Activity {
 		}
 		mAdaptor = new CustomAdapter(this, android.R.layout.simple_list_item_1, dataList);
 		blockedListView.setAdapter(mAdaptor);
+
+		initAdam();
 	}
 
 	@Override
@@ -59,6 +67,31 @@ public class MainActivity extends Activity {
 	public void onStop() {
 		super.onStop();
 		EasyTracker.getInstance().activityStop(this);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (adView != null) {
+			adView.pause();
+		}
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (adView != null) {
+			adView.resume();
+		}
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		if (adView != null) {
+			adView.destroy();
+			adView = null;
+		}
 	}
 
 	@Override
@@ -109,5 +142,39 @@ public class MainActivity extends Activity {
 			senderTextView.setText(rowData.sender);
 			return convertView;
 		}
+	}
+
+	private void reMarginContentForAd() {
+		View blockedListView = findViewById(R.id.blockedListView);
+		RelativeLayout.LayoutParams plControl = (RelativeLayout.LayoutParams) blockedListView.getLayoutParams();
+		plControl.bottomMargin = adView.getHeight();
+		blockedListView.setLayoutParams(plControl);
+	}
+
+	private void initAdam() {
+		adView = (AdView) findViewById(R.id.adview);
+		// 2. 광고 내려받기 실패했을 경우에 실행할 리스너
+		adView.setOnAdFailedListener(new OnAdFailedListener() {
+			@Override
+			public void OnAdFailed(AdError error, String message) {
+				reMarginContentForAd();
+			}
+		});
+		// 3. 광고를 정상적으로 내려받았을 경우에 실행할 리스너
+		adView.setOnAdLoadedListener(new OnAdLoadedListener() {
+			@Override
+			public void OnAdLoaded() {
+				reMarginContentForAd();
+			}
+		});
+		boolean isNoBanner = pref.getBoolean("isNoBanner", false);
+		if (isNoBanner) {
+			adView.pause();
+			adView.setVisibility(View.GONE);
+		} else {
+			adView.resume();
+			adView.setVisibility(View.VISIBLE);
+		}
+		reMarginContentForAd();
 	}
 }

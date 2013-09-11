@@ -7,7 +7,17 @@
     <ListView
         android:id="@+id/blockedListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:layout_marginBottom="48dip" >
     </ListView>
+
+    <net.daum.adam.publisher.AdView
+        android:id="@+id/adview"
+        android:layout_width="wrap_content"
+        android:layout_height="48dip"
+        android:layout_alignParentBottom="true"
+        clientId="55a4Z2nT1410d3f2e76"
+        requestInterval="60"
+        android:visibility="invisible" />
 
 </RelativeLayout>
