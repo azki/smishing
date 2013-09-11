@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">smishing</string>
-    <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Smishing Block</string>
+    <string name="action_list_clear">Clear List</string>
+    <string name="blocked_msg">Smishing was blocked.</string>
+    <string name="blocked_msg_detail">On the message has been blocked from %s.</string>
 
 </resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">스미싱 차단</string>
+    <string name="action_list_clear">목록 비우기</string>
+    <string name="blocked_msg">스미싱이 차단되었습니다.</string>
+    <string name="blocked_msg_detail">%s로 부터 온 메시지가 차단되었습니다.</string>
+
+</resources>
