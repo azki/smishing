@@ -11,6 +11,14 @@
         android:layout_marginBottom="48dip" >
     </ListView>
 
+    <TextView
+        android:id="@+id/emptyListTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/empty_list_msg"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
     <net.daum.adam.publisher.AdView
         android:id="@+id/adview"
         android:layout_width="wrap_content"

@@ -3,6 +3,7 @@
 
     <string name="app_name">Smishing Block</string>
     <string name="action_list_clear">Clear List</string>
+    <string name="empty_list_msg">No blocked Smishing custody.</string>
     <string name="blocked_msg">Smishing was blocked.</string>
     <string name="blocked_msg_detail">On the message has been blocked from %s.</string>
 
