@@ -7,12 +7,21 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -26,11 +35,18 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsMessage;
+import android.util.Log;
 
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.gson.Gson;
 
 public class SmsReceiver extends BroadcastReceiver {
+	final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+		@Override
+		public boolean verify(String hostname, SSLSession session) {
+			return true;
+		}
+	};
 	public static final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
 	private boolean mCanNetworkInMainThread;
 	private Context mContext;
@@ -68,32 +84,85 @@ public class SmsReceiver extends BroadcastReceiver {
 			HttpURLConnection connection = null;
 			try {
 				URL url = getUrlFromUrlStr(urlStr);
-				connection = (HttpURLConnection) url.openConnection();
+				if (url.getProtocol().toLowerCase().equals("https")) {
+					trustAllHosts();
+					HttpsURLConnection httpsConnection = (HttpsURLConnection) url.openConnection();
+					httpsConnection.setHostnameVerifier(DO_NOT_VERIFY);
+					connection = httpsConnection;
+				} else {
+					connection = (HttpURLConnection) url.openConnection();
+				}
 				connection.connect();
 
 				String contentType = connection.getContentType();
 				String contentDisposition = connection.getHeaderField("Content-Disposition");
-
-				if (contentType != null && contentType.contains("vnd.android.package-archive")) {
+				String redirectLocation = connection.getHeaderField("Location");
+				Log.d("tag", "contentType: " + contentType);
+				Log.d("tag", "contentDisposition: " + contentDisposition);
+				Log.d("tag", "redirectLocation: " + redirectLocation);
+				if (redirectLocation != null) {
+					checkRedirectLocation(redirectLocation, msgOriginating, msgBody);
+				} else if (contentType != null && contentType.contains("vnd.android.package-archive")) {
 					blockMsgAndLog(msgOriginating, msgBody, "block by contentType");
 				} else if (contentDisposition != null && contentDisposition.contains(".apk")) {
 					blockMsgAndLog(msgOriginating, msgBody, "block by contentDisposition");
 				} else if (contentType != null && contentType.contains("html")) {
 					String contentText = readStream(connection);
+					Log.d("tag", "contentText: " + contentText);
+
 					checkMetaPattern(contentText, msgOriginating, msgBody);
 				}
 			} catch (Exception ex) {
-				// Log.e("tag", "error", ex);
+				Log.e("tag", "error", ex);
 				gaLog(ex.getMessage());
 			} finally {
-				try {
-					if (connection != null) {
-						connection.disconnect();
-					}
-				} catch (Exception ex) {
-
-				}
+				closeConnection(connection);
 			}
+		}
+	}
+
+	private static void trustAllHosts() {
+		X509TrustManager easyTrustManager = new X509TrustManager() {
+			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				// Oh, I am easy!
+			}
+
+			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				// Oh, I am easy!
+			}
+
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+		};
+		// Create a trust manager that does not validate certificate chains
+		TrustManager[] trustAllCerts = new TrustManager[] { easyTrustManager };
+		// Install the all-trusting trust manager
+		try {
+			SSLContext sc = SSLContext.getInstance("TLS");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	void closeConnection(HttpURLConnection connection) {
+		try {
+			if (connection != null) {
+				connection.disconnect();
+			}
+		} catch (Exception ex) {
+		}
+	}
+
+	void checkRedirectLocation(String redirectLocation, String msgOriginating, String msgBody) {
+		if (redirectLocation.contains("://")) {
+			checkUrl(redirectLocation, msgOriginating, msgBody);
+			gaLog("redirectLocation Absolute");
+		} else {
+			// TODO
+			gaLog("redirectLocation Relative");
 		}
 	}
 
