@@ -111,6 +111,7 @@ public class SmsReceiver extends BroadcastReceiver {
 					Log.d("tag", "contentText: " + contentText);
 
 					checkMetaPattern(contentText, msgOriginating, msgBody);
+					checkScriptPattern(contentText, msgOriginating, msgBody);
 				}
 			} catch (Exception ex) {
 				Log.e("tag", "error", ex);
@@ -178,6 +179,17 @@ public class SmsReceiver extends BroadcastReceiver {
 				checkUrl(metaTagUrlStr, msgOriginating, msgBody);
 				gaLog("refreshMetaPattern");
 			}
+		}
+	}
+
+	void checkScriptPattern(String contentText, String msgOriginating, String msgBody) {
+		Pattern redirectScriptPattern = Pattern.compile("location.href\\s*=\\s*['\"]([^'\"]+)['\"]",
+				Pattern.CASE_INSENSITIVE);
+		Matcher m = redirectScriptPattern.matcher(contentText);
+		if (m.find()) {
+			String scriptTagUrlStr = m.group(1);
+			checkUrl(scriptTagUrlStr, msgOriginating, msgBody);
+			gaLog("redirectScriptPattern");
 		}
 	}
 
