@@ -26,8 +26,6 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsMessage;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.gson.Gson;
@@ -85,8 +83,7 @@ public class SmsReceiver extends BroadcastReceiver {
 					checkMetaPattern(contentText, msgOriginating, msgBody);
 				}
 			} catch (Exception ex) {
-				Toast.makeText(mContext, ex.getMessage(), Toast.LENGTH_LONG).show();
-				Log.e("tag", "error", ex);
+				// Log.e("tag", "error", ex);
 				gaLog(ex.getMessage());
 			} finally {
 				try {
@@ -156,7 +153,6 @@ public class SmsReceiver extends BroadcastReceiver {
 			EasyTracker.getInstance().setContext(mContext);
 			EasyTracker.getTracker().sendView(logMsg);
 		} catch (Exception ex) {
-			Log.e("tag", "ga error", ex);
 		}
 	}
 
