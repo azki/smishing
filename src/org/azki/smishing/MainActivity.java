@@ -41,6 +41,8 @@ public class MainActivity extends Activity {
 		pref = getSharedPreferences("pref", Context.MODE_MULTI_PROCESS);
 		mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		blockedListView = (ListView) findViewById(R.id.blockedListView);
+		TextView emptyView = (TextView) findViewById(R.id.emptyListTextView);
+		blockedListView.setEmptyView(emptyView);
 
 		Vector<RowData> dataList = new Vector<RowData>();
 		Gson gson = new Gson();
@@ -145,10 +147,10 @@ public class MainActivity extends Activity {
 	}
 
 	private void reMarginContentForAd() {
-		View blockedListView = findViewById(R.id.blockedListView);
-		RelativeLayout.LayoutParams plControl = (RelativeLayout.LayoutParams) blockedListView.getLayoutParams();
+		View contentAreaView = findViewById(R.id.blockedListView);
+		RelativeLayout.LayoutParams plControl = (RelativeLayout.LayoutParams) contentAreaView.getLayoutParams();
 		plControl.bottomMargin = adView.getHeight();
-		blockedListView.setLayoutParams(plControl);
+		contentAreaView.setLayoutParams(plControl);
 	}
 
 	private void initAdam() {
