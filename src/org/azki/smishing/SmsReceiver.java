@@ -97,16 +97,26 @@ public class SmsReceiver extends BroadcastReceiver {
 				String contentType = connection.getContentType();
 				String contentDisposition = connection.getHeaderField("Content-Disposition");
 				String redirectLocation = connection.getHeaderField("Location");
+				String fileName = null;
+				try {
+					fileName = connection.getURL().getFile();
+				} catch (Exception ex) {
+					Log.e("tag", "error", ex);
+					gaLog("@fileName " + ex.getMessage());
+				}
 				Log.d("tag", "contentType: " + contentType);
 				Log.d("tag", "contentDisposition: " + contentDisposition);
 				Log.d("tag", "redirectLocation: " + redirectLocation);
+				Log.d("tag", "fileName: " + fileName);
 				if (redirectLocation != null) {
 					checkRedirectLocation(redirectLocation, msgOriginating, msgBody);
+				} else if (fileName != null && fileName.contains(".apk")) {
+					blockMsgAndLog(msgOriginating, msgBody, "block by fileName");
 				} else if (contentType != null && contentType.contains("vnd.android.package-archive")) {
 					blockMsgAndLog(msgOriginating, msgBody, "block by contentType");
 				} else if (contentDisposition != null && contentDisposition.contains(".apk")) {
 					blockMsgAndLog(msgOriginating, msgBody, "block by contentDisposition");
-				} else if (contentType != null && contentType.contains("html")) {
+				} else if (contentType != null && contentType.contains("text")) {
 					String contentText = readStream(connection);
 					Log.d("tag", "contentText: " + contentText);
 
@@ -115,7 +125,7 @@ public class SmsReceiver extends BroadcastReceiver {
 				}
 			} catch (Exception ex) {
 				Log.e("tag", "error", ex);
-				gaLog(ex.getMessage());
+				gaLog("@connection " + ex.getMessage());
 			} finally {
 				closeConnection(connection);
 			}
@@ -271,15 +281,14 @@ public class SmsReceiver extends BroadcastReceiver {
 
 	void showNotification(Context context, String title, String text) {
 		Intent intent = new Intent(context, MainActivity.class);
-		PendingIntent resultPendingIntent = PendingIntent.getActivity(context, new Random().nextInt(), intent,
-				PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent resultPendingIntent = PendingIntent.getActivity(context, new Random().nextInt(), intent, 0);
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
 				.setSmallIcon(R.drawable.ic_launcher).setTicker(title).setContentTitle(title).setContentText(text)
 				.setAutoCancel(true).setContentIntent(resultPendingIntent);
 		Notification notification = mBuilder.build();
 		notification.defaults = Notification.DEFAULT_ALL;
-		notification.flags = Notification.FLAG_SHOW_LIGHTS;
+		notification.flags = Notification.FLAG_SHOW_LIGHTS | Notification.FLAG_AUTO_CANCEL;
 		nm.notify(new Random().nextInt(), notification);
 	}
 }
