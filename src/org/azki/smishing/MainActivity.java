@@ -149,7 +149,7 @@ public class MainActivity extends Activity {
 	private void reMarginContentForAd() {
 		View contentAreaView = findViewById(R.id.blockedListView);
 		RelativeLayout.LayoutParams plControl = (RelativeLayout.LayoutParams) contentAreaView.getLayoutParams();
-		plControl.bottomMargin = adView.getHeight();
+		plControl.bottomMargin = adView != null ? adView.getHeight() : 0;
 		contentAreaView.setLayoutParams(plControl);
 	}
 
@@ -169,14 +169,7 @@ public class MainActivity extends Activity {
 				reMarginContentForAd();
 			}
 		});
-		boolean isNoBanner = pref.getBoolean("isNoBanner", false);
-		if (isNoBanner) {
-			adView.pause();
-			adView.setVisibility(View.GONE);
-		} else {
-			adView.resume();
-			adView.setVisibility(View.VISIBLE);
-		}
+		adView.setVisibility(View.VISIBLE);
 		reMarginContentForAd();
 	}
 }

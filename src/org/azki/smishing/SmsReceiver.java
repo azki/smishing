@@ -2,7 +2,6 @@ package org.azki.smishing;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -61,14 +60,19 @@ public class SmsReceiver extends BroadcastReceiver {
 				if (pdusObj != null) {
 					int numOfMsg = new SmsMessage[pdusObj.length].length;
 					for (int i = 0; i < numOfMsg; i++) {
-						SmsMessage message = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
-						String msgOriginating = message.getOriginatingAddress();
-						String msgBody = message.getMessageBody();
+						try {
+							SmsMessage message = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
+							String msgOriginating = message.getOriginatingAddress();
+							String msgBody = message.getMessageBody();
 
-						Matcher m = android.util.Patterns.WEB_URL.matcher(msgBody);
-						while (m.find()) {
-							String urlStr = m.group();
-							checkUrl(urlStr, msgOriginating, msgBody);
+							Matcher m = android.util.Patterns.WEB_URL.matcher(msgBody);
+							while (m.find()) {
+								String urlStr = m.group();
+								checkUrl(urlStr, msgOriginating, msgBody, 1);
+							}
+						} catch (Exception ex) {
+							Log.e("tag", "error", ex);
+							gaLog("@sms " + ex.getMessage());
 						}
 					}
 				}
@@ -76,7 +80,10 @@ public class SmsReceiver extends BroadcastReceiver {
 		}
 	}
 
-	void checkUrl(String urlStr, String msgOriginating, String msgBody) {
+	void checkUrl(String urlStr, String msgOriginating, String msgBody, int depth) {
+		if (depth > 5) {
+			return;
+		}
 		if (urlStr.contains(".apk")) {
 			blockMsgAndLog(msgOriginating, msgBody, "block by url");
 		} else {
@@ -109,7 +116,7 @@ public class SmsReceiver extends BroadcastReceiver {
 				Log.d("tag", "redirectLocation: " + redirectLocation);
 				Log.d("tag", "fileName: " + fileName);
 				if (redirectLocation != null) {
-					checkRedirectLocation(redirectLocation, msgOriginating, msgBody);
+					checkRedirectLocation(redirectLocation, msgOriginating, msgBody, depth);
 				} else if (fileName != null && fileName.contains(".apk")) {
 					blockMsgAndLog(msgOriginating, msgBody, "block by fileName");
 				} else if (contentType != null && contentType.contains("vnd.android.package-archive")) {
@@ -120,8 +127,8 @@ public class SmsReceiver extends BroadcastReceiver {
 					String contentText = readStream(connection);
 					Log.d("tag", "contentText: " + contentText);
 
-					checkMetaPattern(contentText, msgOriginating, msgBody);
-					checkScriptPattern(contentText, msgOriginating, msgBody);
+					checkMetaPattern(contentText, msgOriginating, msgBody, depth);
+					checkScriptPattern(contentText, msgOriginating, msgBody, depth);
 				}
 			} catch (Exception ex) {
 				Log.e("tag", "error", ex);
@@ -167,17 +174,17 @@ public class SmsReceiver extends BroadcastReceiver {
 		}
 	}
 
-	void checkRedirectLocation(String redirectLocation, String msgOriginating, String msgBody) {
+	void checkRedirectLocation(String redirectLocation, String msgOriginating, String msgBody, int depth) {
 		if (redirectLocation.contains("://")) {
-			checkUrl(redirectLocation, msgOriginating, msgBody);
+			checkUrl(redirectLocation, msgOriginating, msgBody, depth + 1);
 			gaLog("redirectLocation Absolute");
 		} else {
 			// TODO
-			gaLog("redirectLocation Relative");
+			gaLog("redirectLocation Relative " + redirectLocation);
 		}
 	}
 
-	void checkMetaPattern(String contentText, String msgOriginating, String msgBody) {
+	void checkMetaPattern(String contentText, String msgOriginating, String msgBody, int depth) {
 		Pattern refreshMetaPattern = Pattern.compile("<meta[^>]+refresh[^>]*>", Pattern.CASE_INSENSITIVE);
 		Matcher m = refreshMetaPattern.matcher(contentText);
 		while (m.find()) {
@@ -186,30 +193,30 @@ public class SmsReceiver extends BroadcastReceiver {
 			Matcher m2 = urlPatternInMetaTag.matcher(metaTagStr);
 			if (m2.find()) {
 				String metaTagUrlStr = m2.group(1);
-				checkUrl(metaTagUrlStr, msgOriginating, msgBody);
+				checkRedirectLocation(metaTagUrlStr, msgOriginating, msgBody, depth + 1);
 				gaLog("refreshMetaPattern");
 			}
 		}
 	}
 
-	void checkScriptPattern(String contentText, String msgOriginating, String msgBody) {
+	void checkScriptPattern(String contentText, String msgOriginating, String msgBody, int depth) {
 		Pattern redirectScriptPattern = Pattern.compile("location.href\\s*=\\s*['\"]([^'\"]+)['\"]",
 				Pattern.CASE_INSENSITIVE);
 		Matcher m = redirectScriptPattern.matcher(contentText);
 		if (m.find()) {
 			String scriptTagUrlStr = m.group(1);
-			checkUrl(scriptTagUrlStr, msgOriginating, msgBody);
+			checkRedirectLocation(scriptTagUrlStr, msgOriginating, msgBody, depth + 1);
 			gaLog("redirectScriptPattern");
 		}
 	}
 
-	String readStream(HttpURLConnection connection) throws IOException {
+	String readStream(HttpURLConnection connection) throws Exception {
 		BufferedInputStream inputStream = new BufferedInputStream(connection.getInputStream());
 		StringBuilder sb = new StringBuilder();
 		BufferedReader r = new BufferedReader(new InputStreamReader(inputStream), 1024);
 		for (String line = r.readLine(); line != null; line = r.readLine()) {
 			sb.append(line);
-			if (sb.length() > 1024 * 1024) {
+			if (sb.length() > 2048) {
 				break;
 			}
 		}
