@@ -7,6 +7,9 @@ import net.daum.adam.publisher.AdView;
 import net.daum.adam.publisher.AdView.OnAdFailedListener;
 import net.daum.adam.publisher.AdView.OnAdLoadedListener;
 import net.daum.adam.publisher.impl.AdError;
+
+import org.azki.smishing.pro.R;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -154,6 +157,21 @@ public class MainActivity extends Activity {
 	}
 
 	private void initAdam() {
+		if (getString(R.string.app_name).contains("Pro")) {
+			try {
+				EasyTracker.getInstance().setContext(this);
+				EasyTracker.getTracker().sendView("pro_version_init");
+			} catch (Exception ignore) {
+			}
+			return; // for pro version.
+		} else {
+			try {
+				EasyTracker.getInstance().setContext(this);
+				EasyTracker.getTracker().sendView("free_version_init");
+			} catch (Exception ignore) {
+			}
+		}
+
 		adView = (AdView) findViewById(R.id.adview);
 		// 2. 광고 내려받기 실패했을 경우에 실행할 리스너
 		adView.setOnAdFailedListener(new OnAdFailedListener() {
