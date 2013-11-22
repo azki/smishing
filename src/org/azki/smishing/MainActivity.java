@@ -163,31 +163,31 @@ public class MainActivity extends Activity {
 				EasyTracker.getTracker().sendView("pro_version_init");
 			} catch (Exception ignore) {
 			}
-			return; // for pro version.
 		} else {
 			try {
 				EasyTracker.getInstance().setContext(this);
 				EasyTracker.getTracker().sendView("free_version_init");
 			} catch (Exception ignore) {
 			}
-		}
 
-		adView = (AdView) findViewById(R.id.adview);
-		// 2. 광고 내려받기 실패했을 경우에 실행할 리스너
-		adView.setOnAdFailedListener(new OnAdFailedListener() {
-			@Override
-			public void OnAdFailed(AdError error, String message) {
-				reMarginContentForAd();
-			}
-		});
-		// 3. 광고를 정상적으로 내려받았을 경우에 실행할 리스너
-		adView.setOnAdLoadedListener(new OnAdLoadedListener() {
-			@Override
-			public void OnAdLoaded() {
-				reMarginContentForAd();
-			}
-		});
-		adView.setVisibility(View.VISIBLE);
+			adView = (AdView) findViewById(R.id.adview);
+			// 2. 광고 내려받기 실패했을 경우에 실행할 리스너
+			adView.setOnAdFailedListener(new OnAdFailedListener() {
+				@Override
+				public void OnAdFailed(AdError error, String message) {
+					reMarginContentForAd();
+				}
+			});
+			// 3. 광고를 정상적으로 내려받았을 경우에 실행할 리스너
+			adView.setOnAdLoadedListener(new OnAdLoadedListener() {
+				@Override
+				public void OnAdLoaded() {
+					reMarginContentForAd();
+				}
+			});
+			adView.setVisibility(View.VISIBLE);
+		}
+		
 		reMarginContentForAd();
 	}
 }
