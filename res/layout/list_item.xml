@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/dateTextView"
         android:autoLink="all"
-        android:background="@android:drawable/dialog_frame"
+        android:background="@android:drawable/alert_light_frame"
         android:padding="25dp"
         android:text="토요일 결 혼 식 잊지말고 축복하러 와주세요 웨딩 사진첩 azki.org/not "
         android:textSize="15sp" />
