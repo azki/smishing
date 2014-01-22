@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
@@ -187,7 +187,7 @@ public class MainActivity extends Activity {
 			});
 			adView.setVisibility(View.VISIBLE);
 		}
-		
+
 		reMarginContentForAd();
 	}
 }
