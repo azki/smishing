@@ -9,8 +9,10 @@ import net.daum.adam.publisher.AdView.OnAdLoadedListener;
 import net.daum.adam.publisher.impl.AdError;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.analytics.tracking.android.EasyTracker;
 import com.google.gson.Gson;
@@ -108,6 +111,9 @@ public class MainActivity extends Activity {
 		case R.id.action_list_clear:
 			clearBlockedList();
 			break;
+		case R.id.action_pro_version:
+			gotoProVersion();
+			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -122,6 +128,23 @@ public class MainActivity extends Activity {
 		editor.commit();
 		mAdaptor.clear();
 		mAdaptor.notifyDataSetChanged();
+	}
+
+	private void gotoProVersion() {
+		try {
+			Intent intent = new Intent(Intent.ACTION_VIEW);
+			intent.setData(Uri.parse("market://details?id=org.azki.smishing.pro"));
+			startActivity(intent);
+		} catch (Exception e) {
+			try {
+				Intent intent = new Intent(Intent.ACTION_VIEW);
+				intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=org.azki.smishing.pro"));
+				startActivity(intent);
+			} catch (Exception e2) {
+				// e2 는 버리고 먼저 나온 e 를 보여주자.
+				Toast.makeText(this, "Error : " + e, Toast.LENGTH_LONG).show();
+			}
+		}
 	}
 
 	private class CustomAdapter extends ArrayAdapter<RowData> {
