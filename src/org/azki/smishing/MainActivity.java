@@ -7,12 +7,14 @@ import net.daum.adam.publisher.AdView;
 import net.daum.adam.publisher.AdView.OnAdFailedListener;
 import net.daum.adam.publisher.AdView.OnAdLoadedListener;
 import net.daum.adam.publisher.impl.AdError;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 import com.google.gson.Gson;
 
 public class MainActivity extends Activity {
@@ -41,7 +44,8 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		pref = getSharedPreferences("pref", Context.MODE_MULTI_PROCESS);
+		initPref();
+
 		mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		blockedListView = (ListView) findViewById(R.id.blockedListView);
 		TextView emptyView = (TextView) findViewById(R.id.emptyListTextView);
@@ -56,22 +60,28 @@ public class MainActivity extends Activity {
 				dataList.add(gson.fromJson(rawJson, RowData.class));
 			}
 		}
-		mAdaptor = new CustomAdapter(this, android.R.layout.simple_list_item_1, dataList);
+		mAdaptor = new CustomAdapter(this, android.R.layout.simple_list_item_1,
+				dataList);
 		blockedListView.setAdapter(mAdaptor);
 
 		initAdam();
 	}
 
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	private void initPref() {
+		pref = getSharedPreferences("pref", Context.MODE_MULTI_PROCESS);
+	}
+
 	@Override
 	public void onStart() {
 		super.onStart();
-		EasyTracker.getInstance().activityStart(this);
+		EasyTracker.getInstance(this).activityStart(this);
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
-		EasyTracker.getInstance().activityStop(this);
+		EasyTracker.getInstance(this).activityStop(this);
 	}
 
 	@Override
@@ -133,34 +143,40 @@ public class MainActivity extends Activity {
 	private void gotoProVersion() {
 		try {
 			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse("market://details?id=org.azki.smishing.pro"));
+			intent.setData(Uri
+					.parse("market://details?id=org.azki.smishing.pro"));
 			startActivity(intent);
 		} catch (Exception e) {
 			try {
 				Intent intent = new Intent(Intent.ACTION_VIEW);
-				intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=org.azki.smishing.pro"));
+				intent.setData(Uri
+						.parse("https://play.google.com/store/apps/details?id=org.azki.smishing.pro"));
 				startActivity(intent);
 			} catch (Exception e2) {
-				// e2 는 버리고 먼저 나온 e 를 보여주자.
 				Toast.makeText(this, "Error : " + e, Toast.LENGTH_LONG).show();
 			}
 		}
 	}
 
 	private class CustomAdapter extends ArrayAdapter<RowData> {
-		public CustomAdapter(Context context, int textViewResourceId, List<RowData> objects) {
+		public CustomAdapter(Context context, int textViewResourceId,
+				List<RowData> objects) {
 			super(context, textViewResourceId, objects);
 		}
 
 		@Override
-		public View getView(int position, View convertView, final ViewGroup parent) {
+		public View getView(int position, View convertView,
+				final ViewGroup parent) {
 			final RowData rowData = getItem(position);
 			if (convertView == null) {
 				convertView = mInflater.inflate(R.layout.list_item, null);
 			}
-			TextView dateTextView = (TextView) convertView.findViewById(R.id.dateTextView);
-			TextView bodyTextView = (TextView) convertView.findViewById(R.id.bodyTextView);
-			TextView senderTextView = (TextView) convertView.findViewById(R.id.senderTextView);
+			TextView dateTextView = (TextView) convertView
+					.findViewById(R.id.dateTextView);
+			TextView bodyTextView = (TextView) convertView
+					.findViewById(R.id.bodyTextView);
+			TextView senderTextView = (TextView) convertView
+					.findViewById(R.id.senderTextView);
 
 			dateTextView.setText(rowData.when);
 			bodyTextView.setText(rowData.body);
@@ -171,34 +187,30 @@ public class MainActivity extends Activity {
 
 	private void reMarginContentForAd() {
 		View contentAreaView = findViewById(R.id.blockedListView);
-		RelativeLayout.LayoutParams plControl = (RelativeLayout.LayoutParams) contentAreaView.getLayoutParams();
+		RelativeLayout.LayoutParams plControl = (RelativeLayout.LayoutParams) contentAreaView
+				.getLayoutParams();
 		plControl.bottomMargin = adView != null ? adView.getHeight() : 0;
 		contentAreaView.setLayoutParams(plControl);
 	}
 
 	private void initAdam() {
 		if (getString(R.string.app_name).contains("Pro")) {
-			try {
-				EasyTracker.getInstance().setContext(this);
-				EasyTracker.getTracker().sendView("pro_version_init");
-			} catch (Exception ignore) {
-			}
+			EasyTracker.getInstance(this).send(
+					MapBuilder.createEvent("main", "init", "pro_version", null)
+							.build());
 		} else {
-			try {
-				EasyTracker.getInstance().setContext(this);
-				EasyTracker.getTracker().sendView("free_version_init");
-			} catch (Exception ignore) {
-			}
+			EasyTracker.getInstance(this).send(
+					MapBuilder
+							.createEvent("main", "init", "free_version", null)
+							.build());
 
 			adView = (AdView) findViewById(R.id.adview);
-			// 2. 광고 내려받기 실패했을 경우에 실행할 리스너
 			adView.setOnAdFailedListener(new OnAdFailedListener() {
 				@Override
 				public void OnAdFailed(AdError error, String message) {
 					reMarginContentForAd();
 				}
 			});
-			// 3. 광고를 정상적으로 내려받았을 경우에 실행할 리스너
 			adView.setOnAdLoadedListener(new OnAdLoadedListener() {
 				@Override
 				public void OnAdLoaded() {
