@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Smishing Block</string>
+    <string name="action_list_clear">Clear List</string>
+    <string name="action_pro_version">Upgrade to Pro Version</string>
+    <string name="empty_list_msg">If this app is only installed, automatically detect and block the smishing.</string>
+    <string name="blocked_msg">Smishing was blocked.</string>
+    <string name="blocked_msg_detail">On the message has been blocked from %s.</string>
+    <string name="interstitial_ad_unit_id">ca-app-pub-1808062271143441/1059303618</string>
+
+</resources>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <TextView
+        android:id="@+id/dateTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2013년 09월 11일 수 21시 22분"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/bodyTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dateTextView"
+        android:autoLink="all"
+        android:background="@android:drawable/alert_light_frame"
+        android:padding="25dp"
+        android:text="토요일 결 혼 식 잊지말고 축복하러 와주세요 웨딩 사진첩 azki.org/not "
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/senderTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/bodyTextView"
+        android:autoLink="phone"
+        android:text="+821029680000"
+        android:textSize="15sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/senderTextView"
+        android:layout_marginRight="5dp"
+        android:layout_toLeftOf="@id/senderTextView"
+        android:text="From "
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textStyle="italic" />
+
+</RelativeLayout>
