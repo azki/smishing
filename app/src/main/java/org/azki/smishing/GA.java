@@ -1,7 +1,6 @@
 package org.azki.smishing;
 
 import android.app.Application;
-import android.util.Log;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
@@ -26,8 +25,6 @@ public class GA {
         HitBuilders.ScreenViewBuilder builder = new HitBuilders.ScreenViewBuilder();
         builder.set(SCREEN_NAME, name);
         tracker.send(builder.build());
-
-        Log.d("taggg", "sendView : " + name);
     }
 
     public static void sendEvent(String category, String action, String label, Long value) {
@@ -41,8 +38,6 @@ public class GA {
             builder.setValue(value);
         }
         tracker.send(builder.build());
-
-        Log.d("taggg", "sendEvent : " + category + " ( " + action + " )");
     }
 
     public static void sendTransaction(String id, String name, String sku, double price, long quantity) {
