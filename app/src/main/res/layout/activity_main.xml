@@ -7,11 +7,11 @@
     <Button
         android:id="@+id/button"
         style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="@string/action_pro_version" />
+        android:text="@string/action_pro_version_for_remove_ad" />
 
     <ListView
         android:id="@+id/blockedListView"

@@ -4,6 +4,7 @@
     <string name="app_name">스미싱 차단</string>
     <string name="action_list_clear">목록 비우기</string>
     <string name="action_pro_version">Pro버전으로 업그레이드</string>
+    <string name="action_pro_version_for_remove_ad">광고가 없는 Pro버전으로 업그레이드</string>
     <string name="empty_list_msg">이 앱은 설치만 되어있으면 자동으로 스미싱 문자를 감지/차단 합니다.</string>
     <string name="blocked_msg">스미싱이 차단되었습니다.</string>
     <string name="blocked_msg_detail">%s로 부터 온 메시지가 차단되었습니다.</string>

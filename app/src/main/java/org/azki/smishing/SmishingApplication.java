@@ -18,7 +18,7 @@ public class SmishingApplication extends Application {
 
     public static void showAd(Activity activity) {
         final InterstitialAd interstitialAd = new InterstitialAd(activity);
-        interstitialAd.setAdUnitId(activity.getString(R.string.interstitial_ad_unit_id));
+        interstitialAd.setAdUnitId("ca-app-pub-1808062271143441/1059303618");
         interstitialAd.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
